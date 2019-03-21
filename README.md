@@ -24,6 +24,7 @@ KAFKA_VERSION=2.0.0
 SCALA_VERSION=2.12
 docker run --name zookeeper \
            --restart always \
+           -p 2181:2181 \ # optional, required if you run kafka or zk cli commands from your machine
            -d  \
            -e ZOO_STANDALONE_ENABLED=true \
            -h zookeeper \
@@ -122,3 +123,24 @@ KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE="true"
 KAFKA_ZOOKEEPER_CONNECT="172.17.0.2:2181/kafka/mycluster"
 KAFKA_ZOOKEEPER_SESSION_TIMEOUT_MS="30000"
 ```
+
+## Client Connections
+
+For java clients you will need to create the file /path/to/file/kafka_client_jaas.conf with the following content (adjusted accordingly if you change the default user/pass)
+```
+KafkaClient {
+    org.apache.kafka.common.security.scram.ScramLoginModule required
+    username="admin"
+    password="badpassword";
+};
+```
+and load it at java start time with the flag
+```
+-Djava.security.auth.login.config=/path/to/file/kafka_client_jaas.conf
+```
+you will also require
+```
+sasl.mechanism=SCRAM-SHA-512
+security.protocol=SASL_PLAINTEXT
+```
+in your consumer/producer properties file

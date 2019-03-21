@@ -40,6 +40,7 @@ ADD http://search.maven.org/remotecontent?filepath=org/jolokia/jolokia-jvm/1.6.0
 
 COPY files/entrypoint.sh /
 COPY files/update-server-properties.py /usr/local/bin/
+COPY files/kafka_server_jaas.conf /etc/kafka/
 COPY files/jmx_prometheus_exporter.yml /etc/kafka/jmx_prometheus_exporter.yml
 
 WORKDIR /tmp
