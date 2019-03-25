@@ -1,9 +1,8 @@
-# based on the file
-FROM openjdk:11-jre-slim
-LABEL maintainer="Jacob Bresciani"
-
-ARG KAFKA_VERSION=2.0.0
+ARG KAFKA_VERSION=2.1.1
 ARG SCALA_VERSION=2.12
+
+FROM jbresciani/kafka:${SCALA_VERSION}-${KAFKA_VERSION}-latest
+LABEL maintainer="Jacob Bresciani"
 
 ENV BROKER_USERNAME="admin" \
     BROKER_PASSWORD="badpassword" \
@@ -22,9 +21,7 @@ ENV BROKER_USERNAME="admin" \
     KAFKA_SASL_MECHANISM="SCRAM-SHA-256" \
     KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL="SCRAM-SHA-512" \
     KAFKA_SECURITY_INTER_BROKER_PROTOCOL="SASL_PLAINTEXT" \
-    KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE="true" \
-    KAFKA_ZOOKEEPER_CONNECT="172.17.0.2:2181/kafka/mycluster" \
-    KAFKA_ZOOKEEPER_SESSION_TIMEOUT_MS="30000"
+    KAFKA_ZOOKEEPER_CONNECT="172.17.0.2:2181/kafka/mycluster"
     
  RUN apt-get update \
      && apt-get -y install gnupg2 \
@@ -58,21 +55,34 @@ RUN adduser --shell /bin/bash \
     && mkdir -p ${KAFKA_LOG_DIR} \
     && mkdir /opt/kafka_${SCALA_VERSION}-${KAFKA_VERSION}/logs \
     && ln -s /opt/kafka_${SCALA_VERSION}-${KAFKA_VERSION} /opt/kafka \
-    && mkdir -p /var/log/zookeeper \
-    && chown -R kafka.kafka /var/log/zookeeper \
     && chown -R kafka.kafka ${KAFKA_LOG_DIR} \
     && chown -R kafka:kafka /opt/kafka_${SCALA_VERSION}-${KAFKA_VERSION}/logs \
     && chown -R kafka:kafka /etc/kafka \
     && chmod 755 /opt/jmx_prometheus_javaagent \
     && chmod 644 /opt/jmx_prometheus_javaagent/* \
-    && chmod 755 /var/log/zookeeper \
     && chmod 755 /opt/jolokia \
     && chmod 644 /opt/jolokia/*
 
 WORKDIR /opt/kafka_${SCALA_VERSION}-${KAFKA_VERSION}
 USER kafka
 
-EXPOSE 8080/tcp 9090/tcp 9092/tcp 9099/tcp 19092/tcp
+#this is the default location where kafka stores partition data
+VOLUME /var/lib/kafka/logs
+
+# prometheus port
+EXPOSE 8080/tcp
+
+# jmx port
+EXPOSE 9090/tcp 
+
+#jolokia port
+EXPOSE 9099/tcp
+
+# kafka unauthed port
+EXPOSE 9092/tcp
+
+# Kafka authed port
+EXPOSE 19092/tcp
 
 CMD ["/bin/bash"]
 

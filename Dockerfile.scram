@@ -1,0 +1,30 @@
+ARG KAFKA_VERSION=2.1.1
+ARG SCALA_VERSION=2.12
+
+FROM jbresciani/kafka:${SCALA_VERSION}-${KAFKA_VERSION}-latest
+LABEL maintainer="Jacob Bresciani"
+
+ENV BROKER_USERNAME="admin" \
+    BROKER_PASSWORD="badpassword" \
+    EXTRA_ARGS='-name kafkaServer -loggc' \
+    KAFKA_ADVERTISED_LISTENERS="PLAINTEXT://localhost:9092,SASL_PLAINTEXT://localhost:19092" \
+    KAFKA_LISTENERS="PLAINTEXT://0.0.0.0:9092,SASL_PLAINTEXT://0.0.0.0:19092" \
+    KAFKA_SASL_ENABLED_MECHANISMS="SCRAM-SHA-256,SCRAM-SHA-512" \
+    KAFKA_SASL_MECHANISM="SCRAM-SHA-256" \
+    KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL="SCRAM-SHA-512" \
+    KAFKA_SECURITY_INTER_BROKER_PROTOCOL="SASL_PLAINTEXT"
+
+COPY files/scram_setup.sh /kafka.d/scram_setup.sh
+COPY files/kafka_server_jaas.conf /etc/kafka/
+
+USER root
+
+RUN chmod +x /kafka.d/* \
+    && chown -R kafka:kafka /etc/kafka \
+    && ls -l /etc/kafka \
+    && cat /etc/kafka/kafka_server_jaas.conf
+
+USER kafka
+
+# Kafka authed port
+EXPOSE 19092/tcp

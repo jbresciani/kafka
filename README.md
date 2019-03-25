@@ -7,9 +7,9 @@ This container runs apache kafka using openjre 11 on debian slim. It is build fr
 To build the image, you must provide the kafka and scala versions (if unprovided they default to 2.0.0 and 2.12 respectively)
 
 ```
-KAFKA_VERSION=2.0.0
+KAFKA_VERSION=2.1.1
 SCALA_VERSION=2.12
-docker build . \
+docker build . -f Dockerfile.base\
              --build-arg KAFKA_VERSION=${KAFKA_VERSION} \
              --build-arg SCALA_VERSION=${SCALA_VERSION} \
              -t jbresciani/kafka:${SCALA_VERSION}-${KAFKA_VERSION}-built-from-my-desk
@@ -20,11 +20,11 @@ docker build . \
 To use this container you will also need the base zookeeper container. the commands below will pull the latest zookeeper from dockerhub (we currently do not have our own zookeeper container), extract the IP from the docker container and pass it into the kafka container
 
 ```
-KAFKA_VERSION=2.0.0
+KAFKA_VERSION=2.1.1
 SCALA_VERSION=2.12
 docker run --name zookeeper \
            --restart always \
-           -p 2181:2181 \ # optional, required if you run kafka or zk cli commands from your machine
+           -p 2181:2181 \
            -d  \
            -e ZOO_STANDALONE_ENABLED=true \
            -h zookeeper \
@@ -33,11 +33,8 @@ ZOOKEEPER_IP=$(docker exec zookeeper hostname -i)
 docker run --name kafka \
            --restart always \
            -d \
-           -p 9092:9092 \ # unauthed port
-           -p 19092:19092 \ # authed port (SASL_PLAINTEXT)
-           -p 8080:8080 \ # optional prometheus port
-           -p 9090:9090 \ # optional JMX port
-           -p 9099:9099 \ # optional jolokia port
+           -p 9092:9092 \
+           -p 19092:19092 \
            -e KAFKA_ZOOKEEPER_CONNECT=${ZOOKEEPER_IP}:2181/kafka/mycluster \
            -h kafka \
            jbresciani/kafka:${SCALA_VERSION}-${KAFKA_VERSION}-built-from-my-desk

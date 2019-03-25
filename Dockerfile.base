@@ -1,0 +1,76 @@
+FROM python:3.7-stretch as builder
+
+RUN pip install -U pip
+RUN pip install pyinstaller
+
+COPY files/update-server-properties.py /tmp/
+
+RUN cd /tmp/ && pyinstaller update-server-properties.py 
+
+FROM openjdk:11-jre-slim
+LABEL maintainer="Jacob Bresciani"
+
+ARG KAFKA_VERSION=2.1.1
+ARG SCALA_VERSION=2.12docker 
+
+ENV EXTRA_ARGS='-name kafkaServer -loggc' \
+    KAFKA_HEAP_OPTS="-Xmx3G -Xms3G -XX:+HeapDumpOnOutOfMemoryError -XX:MetaspaceSize=96m -XX:+UseG1GC" \
+    KAFKA_HOME="/opt/kafka_${SCALA_VERSION}-${KAFKA_VERSION}" \
+    KAFKA_JMX_PORT="9090" \
+    KAFKA_VERSION="${KAFKA_VERSION}" \
+    SCALA_VERSION="${SCALA_VERSION}" \
+    KAFKA_BROKER_ID="1" \
+    KAFKA_ADVERTISED_LISTENERS="PLAINTEXT://localhost:9092" \
+    KAFKA_LISTENERS="PLAINTEXT://0.0.0.0:9092" \
+    KAFKA_LOG_DIR="/var/lib/kafka/logs" \
+    KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR="1" \
+    KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR="1" \
+    KAFKA_ZOOKEEPER_CONNECT="172.17.0.2:2181/kafka/mycluster"
+
+RUN apt-get update \
+     && apt-get -y install gnupg2 \
+     && rm -rf /var/lib/apt/lists/* 
+
+ADD http://apache.org/dist/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz.sha512 /tmp
+ADD http://apache.org/dist/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz /tmp
+
+COPY files/entrypoint.sh /
+COPY --from=builder /tmp/dist/update-server-properties /usr/local/bin/
+
+WORKDIR /tmp
+RUN if ! (gpg --print-md sha512 kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz | diff kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz.sha512 -); then \
+    echo "bad sha512 checksum"; \
+    exit 1; \
+    fi
+
+RUN tar -xzf kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz -C /opt \
+    && rm /tmp/kafka*
+
+RUN adduser --shell /bin/bash \
+            --home /opt/kafka_${SCALA_VERSION}-${KAFKA_VERSION} \
+            kafka \
+    && mkdir /etc/kafka \
+    && mkdir /kafka.d \
+    && mkdir -p ${KAFKA_LOG_DIR} \
+    && mkdir /opt/kafka_${SCALA_VERSION}-${KAFKA_VERSION}/logs \
+    && ln -s /opt/kafka_${SCALA_VERSION}-${KAFKA_VERSION} /opt/kafka \
+    && chown -R kafka:kafka /kafka.d \
+    && chown -R kafka.kafka ${KAFKA_LOG_DIR} \
+    && chown -R kafka:kafka /opt/kafka_${SCALA_VERSION}-${KAFKA_VERSION}/logs \
+    && chown -R kafka:kafka /etc/kafka
+
+WORKDIR /opt/kafka_${SCALA_VERSION}-${KAFKA_VERSION}
+USER kafka
+
+#this is the default location where kafka stores partition data
+VOLUME /var/lib/kafka/logs
+
+# jmx port
+EXPOSE 9090/tcp
+
+# kafka unauthed port
+EXPOSE 9092/tcp
+
+CMD ["/bin/bash"]
+
+ENTRYPOINT [ "/entrypoint.sh" ]
