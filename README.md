@@ -17,7 +17,7 @@ docker build . -f Dockerfile.base\
 
 ## Running Locally
 
-To use this container you will also need the base zookeeper container. the commands below will pull the latest zookeeper from dockerhub (we currently do not have our own zookeeper container), extract the IP from the docker container and pass it into the kafka container
+To use this container you will also need the base zookeeper container. the commands below will pull the latest zookeeper container from dockerhub, extract the IP from the docker container and pass it into the kafka container
 
 ```
 KAFKA_VERSION=2.1.1
@@ -40,7 +40,7 @@ docker run --name kafka \
            jbresciani/kafka:${SCALA_VERSION}-${KAFKA_VERSION}-built-from-my-desk
 ```
 
-(if you are not building the container on your own you can use the tag ${SCALA_VERSION}-${KAFKA_VERSION}-latest to pull from gcr.io)
+(if you are not building the container on your own you can use the tag ${SCALA_VERSION}-${KAFKA_VERSION}-latest to pull from dockerhub)
 
 Kafka will now be listening to connections on your local machine.
 
