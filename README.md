@@ -7,9 +7,9 @@ This container runs apache kafka using openjre 11 on debian slim. It is build fr
 To build the image, you must provide the kafka and scala versions (if unprovided they default to 2.0.0 and 2.12 respectively)
 
 ```
-KAFKA_VERSION=2.1.1
+KAFKA_VERSION=2.2.0
 SCALA_VERSION=2.12
-docker build . -f Dockerfile.base\
+docker build . -f Dockerfile.base \
              --build-arg KAFKA_VERSION=${KAFKA_VERSION} \
              --build-arg SCALA_VERSION=${SCALA_VERSION} \
              -t jbresciani/kafka:${SCALA_VERSION}-${KAFKA_VERSION}-built-from-my-desk
