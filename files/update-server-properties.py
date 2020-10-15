@@ -1,4 +1,6 @@
+"""A simple script to convert ENV variables to Java properties."""
 #!/usr/bin/env python3
+
 import os
 
 blacklist = ['KAFKA_JMX_PORT', 'KAFKA_VERSION', 'KAFKA_HOME', 'KAFKA_HEAP_OPTS']

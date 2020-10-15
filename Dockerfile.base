@@ -10,8 +10,8 @@ RUN cd /tmp/ && pyinstaller update-server-properties.py
 FROM openjdk:11-jre-slim
 LABEL maintainer="Jacob Bresciani"
 
-ARG KAFKA_VERSION=2.1.1
-ARG SCALA_VERSION=2.12docker 
+ARG KAFKA_VERSION=2.5.0
+ARG SCALA_VERSION=2.13
 
 ENV EXTRA_ARGS='-name kafkaServer -loggc' \
     KAFKA_HEAP_OPTS="-Xmx3G -Xms3G -XX:+HeapDumpOnOutOfMemoryError -XX:MetaspaceSize=96m -XX:+UseG1GC" \
@@ -28,7 +28,7 @@ ENV EXTRA_ARGS='-name kafkaServer -loggc' \
     KAFKA_ZOOKEEPER_CONNECT="172.17.0.2:2181/kafka/mycluster"
 
 RUN apt-get update \
-     && apt-get -y upgrade \
+     && apt-get -y update \
      && apt-get -y install gnupg2 \
      && rm -rf /var/lib/apt/lists/* 
 
