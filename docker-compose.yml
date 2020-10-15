@@ -11,7 +11,7 @@ services:
         restart_policy:
             condition: on-failure
   kafka:
-    image: jbresciani/kafka:2.13-2.5.0-latest
+    image: jbresciani/kafka:2.13-2.6.0-latest
     depends_on:
         - zookeeper
     ports:

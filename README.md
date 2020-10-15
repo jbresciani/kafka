@@ -4,10 +4,10 @@ This container uses openjdk:11-jre-slim as it's base. Kafka is built from source
 
 ## Build Process
 
-To build the image, you must provide the kafka and scala versions (if unprovided they default to 2.5.0 and 2.13 respectively)
+To build the image, you must provide the kafka and scala versions (if unprovided they default to 2.6.0 and 2.13 respectively)
 
 ``` bash
-KAFKA_VERSION=2.5.0
+KAFKA_VERSION=2.6.0
 SCALA_VERSION=2.13
 docker build . -f Dockerfile.base \
              --build-arg KAFKA_VERSION=${KAFKA_VERSION} \
@@ -35,7 +35,7 @@ services:
         restart_policy:
             condition: on-failure
   kafka:
-    image: jbresciani/kafka:2.13-2.5.0-latest
+    image: jbresciani/kafka:2.13-2.6.0-latest
     depends_on:
         - zookeeper
     ports:

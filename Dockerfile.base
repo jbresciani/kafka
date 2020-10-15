@@ -10,7 +10,7 @@ RUN cd /tmp/ && pyinstaller update-server-properties.py
 FROM openjdk:11-jre-slim
 LABEL maintainer="Jacob Bresciani"
 
-ARG KAFKA_VERSION=2.5.0
+ARG KAFKA_VERSION=2.6.0
 ARG SCALA_VERSION=2.13
 
 ENV EXTRA_ARGS='-name kafkaServer -loggc' \
@@ -28,9 +28,8 @@ ENV EXTRA_ARGS='-name kafkaServer -loggc' \
     KAFKA_ZOOKEEPER_CONNECT="172.17.0.2:2181/kafka/mycluster"
 
 RUN apt-get update \
-     && apt-get -y update \
-     && apt-get -y install gnupg2 \
-     && rm -rf /var/lib/apt/lists/* 
+    && apt-get -y install gnupg2 \
+    && rm -rf /var/lib/apt/lists/* 
 
 ADD http://apache.org/dist/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz.sha512 /tmp
 ADD http://apache.org/dist/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz /tmp
