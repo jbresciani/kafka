@@ -1,0 +1,24 @@
+version: '3'
+
+services:
+  zookeeper:
+    image: zookeeper:latest
+    ports:
+        - 2181:2181
+    environment:
+        ZOO_STANDALONE_ENABLED: 'true'
+    deploy:
+        restart_policy:
+            condition: on-failure
+  kafka:
+    image: jbresciani/kafka:2.13-2.5.0-latest
+    depends_on:
+        - zookeeper
+    ports:
+        - 9092:9092
+        - 19092:19092
+    environment:
+        KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181/kafka/myCluster
+    deploy:
+        restart_policy:
+            condition: on-failure
